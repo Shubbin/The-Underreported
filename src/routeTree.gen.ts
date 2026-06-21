@@ -23,7 +23,13 @@ import { Route as CategoryRouteImport } from './routes/$category'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
 import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
+import { Route as ApiNewsletterRouteImport } from './routes/api.newsletter'
+import { Route as ApiContactRouteImport } from './routes/api.contact'
+import { Route as ApiAuthorsRouteImport } from './routes/api.authors'
+import { Route as ApiArticlesRouteImport } from './routes/api.articles'
 import { Route as CategorySlugRouteImport } from './routes/$category.$slug'
+import { Route as ApiAuthorsSlugRouteImport } from './routes/api.authors.$slug'
+import { Route as ApiArticlesSlugRouteImport } from './routes/api.articles.$slug'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -95,10 +101,40 @@ const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => AuthorsRoute,
 } as any)
+const ApiNewsletterRoute = ApiNewsletterRouteImport.update({
+  id: '/api/newsletter',
+  path: '/api/newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiContactRoute = ApiContactRouteImport.update({
+  id: '/api/contact',
+  path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthorsRoute = ApiAuthorsRouteImport.update({
+  id: '/api/authors',
+  path: '/api/authors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiArticlesRoute = ApiArticlesRouteImport.update({
+  id: '/api/articles',
+  path: '/api/articles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => CategoryRoute,
+} as any)
+const ApiAuthorsSlugRoute = ApiAuthorsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ApiAuthorsRoute,
+} as any)
+const ApiArticlesSlugRoute = ApiArticlesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ApiArticlesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -115,8 +151,14 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/$category/$slug': typeof CategorySlugRoute
+  '/api/articles': typeof ApiArticlesRouteWithChildren
+  '/api/authors': typeof ApiAuthorsRouteWithChildren
+  '/api/contact': typeof ApiContactRoute
+  '/api/newsletter': typeof ApiNewsletterRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/states/$state': typeof StatesStateRoute
+  '/api/articles/$slug': typeof ApiArticlesSlugRoute
+  '/api/authors/$slug': typeof ApiAuthorsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,8 +174,14 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/$category/$slug': typeof CategorySlugRoute
+  '/api/articles': typeof ApiArticlesRouteWithChildren
+  '/api/authors': typeof ApiAuthorsRouteWithChildren
+  '/api/contact': typeof ApiContactRoute
+  '/api/newsletter': typeof ApiNewsletterRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/states/$state': typeof StatesStateRoute
+  '/api/articles/$slug': typeof ApiArticlesSlugRoute
+  '/api/authors/$slug': typeof ApiAuthorsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -150,8 +198,14 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/$category/$slug': typeof CategorySlugRoute
+  '/api/articles': typeof ApiArticlesRouteWithChildren
+  '/api/authors': typeof ApiAuthorsRouteWithChildren
+  '/api/contact': typeof ApiContactRoute
+  '/api/newsletter': typeof ApiNewsletterRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/states/$state': typeof StatesStateRoute
+  '/api/articles/$slug': typeof ApiArticlesSlugRoute
+  '/api/authors/$slug': typeof ApiAuthorsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,8 +223,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/$category/$slug'
+    | '/api/articles'
+    | '/api/authors'
+    | '/api/contact'
+    | '/api/newsletter'
     | '/authors/$slug'
     | '/states/$state'
+    | '/api/articles/$slug'
+    | '/api/authors/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,8 +246,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/$category/$slug'
+    | '/api/articles'
+    | '/api/authors'
+    | '/api/contact'
+    | '/api/newsletter'
     | '/authors/$slug'
     | '/states/$state'
+    | '/api/articles/$slug'
+    | '/api/authors/$slug'
   id:
     | '__root__'
     | '/'
@@ -203,8 +269,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/$category/$slug'
+    | '/api/articles'
+    | '/api/authors'
+    | '/api/contact'
+    | '/api/newsletter'
     | '/authors/$slug'
     | '/states/$state'
+    | '/api/articles/$slug'
+    | '/api/authors/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,6 +292,10 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ApiArticlesRoute: typeof ApiArticlesRouteWithChildren
+  ApiAuthorsRoute: typeof ApiAuthorsRouteWithChildren
+  ApiContactRoute: typeof ApiContactRoute
+  ApiNewsletterRoute: typeof ApiNewsletterRoute
   StatesStateRoute: typeof StatesStateRoute
 }
 
@@ -323,12 +399,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthorsSlugRouteImport
       parentRoute: typeof AuthorsRoute
     }
+    '/api/newsletter': {
+      id: '/api/newsletter'
+      path: '/api/newsletter'
+      fullPath: '/api/newsletter'
+      preLoaderRoute: typeof ApiNewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/contact': {
+      id: '/api/contact'
+      path: '/api/contact'
+      fullPath: '/api/contact'
+      preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/authors': {
+      id: '/api/authors'
+      path: '/api/authors'
+      fullPath: '/api/authors'
+      preLoaderRoute: typeof ApiAuthorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/articles': {
+      id: '/api/articles'
+      path: '/api/articles'
+      fullPath: '/api/articles'
+      preLoaderRoute: typeof ApiArticlesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$category/$slug': {
       id: '/$category/$slug'
       path: '/$slug'
       fullPath: '/$category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof CategoryRoute
+    }
+    '/api/authors/$slug': {
+      id: '/api/authors/$slug'
+      path: '/$slug'
+      fullPath: '/api/authors/$slug'
+      preLoaderRoute: typeof ApiAuthorsSlugRouteImport
+      parentRoute: typeof ApiAuthorsRoute
+    }
+    '/api/articles/$slug': {
+      id: '/api/articles/$slug'
+      path: '/$slug'
+      fullPath: '/api/articles/$slug'
+      preLoaderRoute: typeof ApiArticlesSlugRouteImport
+      parentRoute: typeof ApiArticlesRoute
     }
   }
 }
@@ -356,6 +474,30 @@ const AuthorsRouteChildren: AuthorsRouteChildren = {
 const AuthorsRouteWithChildren =
   AuthorsRoute._addFileChildren(AuthorsRouteChildren)
 
+interface ApiArticlesRouteChildren {
+  ApiArticlesSlugRoute: typeof ApiArticlesSlugRoute
+}
+
+const ApiArticlesRouteChildren: ApiArticlesRouteChildren = {
+  ApiArticlesSlugRoute: ApiArticlesSlugRoute,
+}
+
+const ApiArticlesRouteWithChildren = ApiArticlesRoute._addFileChildren(
+  ApiArticlesRouteChildren,
+)
+
+interface ApiAuthorsRouteChildren {
+  ApiAuthorsSlugRoute: typeof ApiAuthorsSlugRoute
+}
+
+const ApiAuthorsRouteChildren: ApiAuthorsRouteChildren = {
+  ApiAuthorsSlugRoute: ApiAuthorsSlugRoute,
+}
+
+const ApiAuthorsRouteWithChildren = ApiAuthorsRoute._addFileChildren(
+  ApiAuthorsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CategoryRoute: CategoryRouteWithChildren,
@@ -369,6 +511,10 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ApiArticlesRoute: ApiArticlesRouteWithChildren,
+  ApiAuthorsRoute: ApiAuthorsRouteWithChildren,
+  ApiContactRoute: ApiContactRoute,
+  ApiNewsletterRoute: ApiNewsletterRoute,
   StatesStateRoute: StatesStateRoute,
 }
 export const routeTree = rootRouteImport
