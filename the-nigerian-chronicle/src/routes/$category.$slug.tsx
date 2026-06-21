@@ -1,15 +1,10 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import {
-  adjacentArticles,
-  articleBySlug,
-  relatedArticles,
-} from "@/data/articles";
 import { ALL_CATEGORIES, CATEGORY_LABEL, type Category, type Article } from "@/data/types";
-import { authorBySlug } from "@/data/authors";
 import type { Author } from "@/data/types";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs } from "@/components/editorial";
 import { formatDate, SITE_NAME } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 interface LoaderData {
   article: Article;
@@ -21,17 +16,17 @@ interface LoaderData {
 export const Route = createFileRoute("/$category/$slug")({
   beforeLoad: ({ params }) => {
     if (!ALL_CATEGORIES.includes(params.category as Category)) throw notFound();
-    const a = articleBySlug(params.slug);
-    if (!a || a.category !== params.category) throw notFound();
   },
-  loader: ({ params }) => {
-    const article = articleBySlug(params.slug)!;
-    return {
-      article,
-      related: relatedArticles(article, 3),
-      adjacent: adjacentArticles(article),
-      author: authorBySlug(article.authorSlug),
-    };
+  loader: async ({ params }) => {
+    try {
+      const data = await apiFetch<LoaderData>(`/api/articles/${params.slug}`);
+      if (data.article.category !== params.category) {
+        throw notFound();
+      }
+      return data;
+    } catch (err) {
+      throw notFound();
+    }
   },
   head: ({ params, loaderData }) => {
     if (!loaderData) return { meta: [] };

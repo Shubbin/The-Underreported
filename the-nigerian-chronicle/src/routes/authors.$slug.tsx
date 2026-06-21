@@ -1,18 +1,22 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { AUTHORS, authorBySlug } from "@/data/authors";
-import { articlesByAuthor } from "@/data/articles";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs } from "@/components/editorial";
 import { SITE_NAME } from "@/lib/site";
 import { CATEGORY_LABEL, type Article, type Author } from "@/data/types";
+import { apiFetch } from "@/lib/api";
+
+interface LoaderData {
+  author: Author;
+  articles: Article[];
+}
 
 export const Route = createFileRoute("/authors/$slug")({
-  beforeLoad: ({ params }) => {
-    if (!AUTHORS.find((a) => a.slug === params.slug)) throw notFound();
-  },
-  loader: ({ params }) => {
-    const author = authorBySlug(params.slug);
-    return { author, articles: articlesByAuthor(params.slug) };
+  loader: async ({ params }) => {
+    try {
+      return await apiFetch<LoaderData>(`/api/authors/${params.slug}`);
+    } catch (err) {
+      throw notFound();
+    }
   },
   head: ({ params, loaderData }) => {
     const name = loaderData?.author.name ?? "Author";

@@ -1,27 +1,49 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ARCHIVE_YEARS, ARTICLES, articlesByYear } from "@/data/articles";
-import { ALL_CATEGORIES, CATEGORY_LABEL } from "@/data/types";
+import { ALL_CATEGORIES, CATEGORY_LABEL, type Article } from "@/data/types";
 import { Breadcrumbs } from "@/components/editorial";
 import { formatDateShort, SITE_NAME } from "@/lib/site";
 import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/archive")({
-  head: () => ({
-    meta: [
-      { title: `Archive — ${SITE_NAME}` },
-      { name: "description", content: `Complete archive of ${ARTICLES.length} reports from ${SITE_NAME}, 2023 to present.` },
-      { property: "og:title", content: `Archive — ${SITE_NAME}` },
-      { property: "og:url", content: "/archive" },
-    ],
-    links: [{ rel: "canonical", href: "/archive" }],
-  }),
+  loader: async () => {
+    try {
+      const articles = await apiFetch<Article[]>("/api/articles");
+      return { articles };
+    } catch (err) {
+      return { articles: [] as Article[] };
+    }
+  },
+  head: ({ loaderData }) => {
+    const total = loaderData?.articles.length ?? 0;
+    return {
+      meta: [
+        { title: `Archive — ${SITE_NAME}` },
+        { name: "description", content: `Complete archive of ${total} reports from ${SITE_NAME}, 2023 to present.` },
+        { property: "og:title", content: `Archive — ${SITE_NAME}` },
+        { property: "og:url", content: "/archive" },
+      ],
+      links: [{ rel: "canonical", href: "/archive" }],
+    };
+  },
   component: Archive,
 });
 
 function Archive() {
-  const [year, setYear] = useState<number>(ARCHIVE_YEARS[0]);
+  const { articles } = Route.useLoaderData() as { articles: Article[] };
+  
+  // Calculate years present dynamically from articles database
+  const years = Array.from(
+    new Set(articles.map((a) => new Date(a.publishedAt).getFullYear()))
+  ).sort((a, b) => b - a);
+
+  const [year, setYear] = useState<number>(years[0] || 2026);
   const [cat, setCat] = useState<string>("all");
-  const yearArticles = articlesByYear(year).filter((a) => cat === "all" || a.category === cat);
+  
+  const yearArticles = articles.filter((a) => {
+    const y = new Date(a.publishedAt).getFullYear();
+    return y === year && (cat === "all" || a.category === cat);
+  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -33,7 +55,7 @@ function Archive() {
           The full archive
         </h1>
         <p className="mt-3 max-w-2xl text-ink-muted">
-          {ARTICLES.length} reports published since 2023, indexed by year and section.
+          {articles.length} reports published since 2023, indexed by year and section.
         </p>
       </header>
 
@@ -41,13 +63,13 @@ function Archive() {
         <aside>
           <div className="kicker mb-3">Year</div>
           <ul className="space-y-1.5">
-            {ARCHIVE_YEARS.map((y) => (
+            {years.map((y) => (
               <li key={y}>
                 <button
                   onClick={() => setYear(y)}
                   className={`block w-full text-left text-sm py-1 ${y === year ? "font-bold text-newsroom" : "text-ink hover:text-newsroom"}`}
                 >
-                  {y} <span className="text-ink-muted text-xs">({articlesByYear(y).length})</span>
+                  {y} <span className="text-ink-muted text-xs">({articles.filter(a => new Date(a.publishedAt).getFullYear() === y).length})</span>
                 </button>
               </li>
             ))}

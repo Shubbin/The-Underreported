@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ARTICLES } from "@/data/articles";
 import { ArticleCard } from "@/components/article-card";
 import { Newsletter, SectionHead } from "@/components/editorial";
-import { ALL_STATES, CATEGORY_LABEL, type Category } from "@/data/types";
+import { ALL_STATES, CATEGORY_LABEL, type Category, type Article } from "@/data/types";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,25 +16,31 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
+  loader: async () => {
+    return {
+      articles: await apiFetch<Article[]>("/api/articles"),
+    };
+  },
   component: Home,
 });
 
-function byCategory(cat: Category, n = 4) {
-  return ARTICLES.filter((a) => a.category === cat).slice(0, n);
+function byCategory(articles: Article[], cat: Category, n = 4) {
+  return articles.filter((a) => a.category === cat).slice(0, n);
 }
 
 function Home() {
-  const hero = ARTICLES.find((a) => a.isInvestigation) ?? ARTICLES[0];
-  const featured = ARTICLES.filter((a) => a.slug !== hero.slug).slice(0, 2);
-  const latest = ARTICLES.filter((a) => ![hero.slug, ...featured.map(f => f.slug)].includes(a.slug)).slice(0, 6);
-  const trending = ARTICLES.slice(20, 25);
+  const { articles } = Route.useLoaderData();
+  const hero = articles.find((a) => a.isInvestigation) ?? articles[0];
+  const featured = articles.filter((a) => a.slug !== hero.slug).slice(0, 2);
+  const latest = articles.filter((a) => ![hero.slug, ...featured.map(f => f.slug)].includes(a.slug)).slice(0, 6);
+  const trending = articles.slice(20, 25);
 
-  const politics = byCategory("politics", 4);
-  const education = byCategory("education", 4);
-  const health = byCategory("health", 4);
-  const humanRights = byCategory("human-rights", 4);
-  const accountability = ARTICLES.filter(a => a.category === "governance" || a.category === "investigations").slice(0, 5);
-  const underreported = ARTICLES.filter(a => a.state).slice(10, 16);
+  const politics = byCategory(articles, "politics", 4);
+  const education = byCategory(articles, "education", 4);
+  const health = byCategory(articles, "health", 4);
+  const humanRights = byCategory(articles, "human-rights", 4);
+  const accountability = articles.filter(a => a.category === "governance" || a.category === "investigations").slice(0, 5);
+  const underreported = articles.filter(a => a.state).slice(10, 16);
 
   return (
     <div>

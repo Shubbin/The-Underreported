@@ -1,3 +1,5 @@
+import { apiFetch } from "@/lib/api";
+
 export function SectionHead({
   kicker,
   title,
@@ -41,16 +43,28 @@ export function Newsletter() {
           </p>
         </div>
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const form = e.currentTarget as HTMLFormElement;
-            form.reset();
-            alert("Thanks — please confirm your subscription from the email we just sent.");
+            const emailInput = form.elements.namedItem("email") as HTMLInputElement;
+            const email = emailInput?.value || "";
+            try {
+              await apiFetch("/api/newsletter", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+              });
+              alert("Thanks — please confirm your subscription from the email we just sent.");
+              form.reset();
+            } catch (err) {
+              alert("Something went wrong. Please try again.");
+            }
           }}
           className="flex flex-col gap-2 sm:flex-row"
         >
           <input
             required
+            name="email"
             type="email"
             placeholder="you@example.com"
             className="flex-1 border border-ink bg-background px-4 py-3 text-base outline-none focus:ring-2 focus:ring-newsroom"

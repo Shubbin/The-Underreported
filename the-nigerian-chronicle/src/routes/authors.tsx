@@ -1,9 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { AUTHORS } from "@/data/authors";
-import { articlesByAuthor } from "@/data/articles";
+import { createFileRoute } from '@tanstack/react-router'
 import { Breadcrumbs } from "@/components/editorial";
-import { CATEGORY_LABEL } from "@/data/types";
+import { CATEGORY_LABEL, type Author, type Article } from "@/data/types";
 import { SITE_NAME } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/authors")({
   head: () => ({
@@ -14,10 +13,21 @@ export const Route = createFileRoute("/authors")({
     ],
     links: [{ rel: "canonical", href: "/authors" }],
   }),
+  loader: async () => {
+    const [authors, articles] = await Promise.all([
+      apiFetch<Author[]>("/api/authors"),
+      apiFetch<Article[]>("/api/articles"),
+    ]);
+    return { authors, articles };
+  },
   component: AuthorsIndex,
 });
 
 function AuthorsIndex() {
+  const { authors, articles } = Route.useLoaderData() as {
+    authors: Author[];
+    articles: Article[];
+  };
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Reporters" }]} />

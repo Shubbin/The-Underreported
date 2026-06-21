@@ -1,9 +1,9 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { articlesByState } from "@/data/articles";
-import { ALL_STATES, type NigerianState } from "@/data/types";
+import { ALL_STATES, type NigerianState, type Article } from "@/data/types";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs, SectionHead } from "@/components/editorial";
 import { SITE_NAME } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 function normalize(s: string): NigerianState | undefined {
   const target = s.toLowerCase();
@@ -14,9 +14,14 @@ export const Route = createFileRoute("/states/$state")({
   beforeLoad: ({ params }) => {
     if (!normalize(params.state)) throw notFound();
   },
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const state = normalize(params.state)!;
-    return { state, articles: articlesByState(state) };
+    try {
+      const articles = await apiFetch<Article[]>(`/api/articles?state=${encodeURIComponent(state)}`);
+      return { state, articles };
+    } catch (err) {
+      throw notFound();
+    }
   },
   head: ({ params, loaderData }) => {
     const state = loaderData?.state ?? "Nigeria";

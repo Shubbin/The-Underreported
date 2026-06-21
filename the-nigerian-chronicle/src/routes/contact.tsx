@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Breadcrumbs } from "@/components/editorial";
 import { SITE_NAME } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -51,29 +52,50 @@ function Contact() {
       </div>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); alert("Thanks — a member of the newsroom will respond within 3 working days."); }}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const form = e.currentTarget as HTMLFormElement;
+          const formData = new FormData(form);
+          const data = {
+            name: formData.get("name") as string,
+            email: formData.get("email") as string,
+            subject: formData.get("subject") as string,
+            message: formData.get("message") as string,
+          };
+          try {
+            await apiFetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+            alert("Thanks — a member of the newsroom will respond within 3 working days.");
+            form.reset();
+          } catch (err) {
+            alert("Something went wrong. Please try again.");
+          }
+        }}
         className="mt-10 border-t-2 border-ink pt-8"
       >
         <h2 className="font-serif text-2xl font-bold mb-4">Send a message</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm">
             <span className="block font-semibold mb-1">Name</span>
-            <input required className="w-full border border-ink px-3 py-2" />
+            <input required name="name" className="w-full border border-ink px-3 py-2" />
           </label>
           <label className="text-sm">
             <span className="block font-semibold mb-1">Email</span>
-            <input required type="email" className="w-full border border-ink px-3 py-2" />
+            <input required name="email" type="email" className="w-full border border-ink px-3 py-2" />
           </label>
           <label className="text-sm sm:col-span-2">
             <span className="block font-semibold mb-1">Subject</span>
-            <input required className="w-full border border-ink px-3 py-2" />
+            <input required name="subject" className="w-full border border-ink px-3 py-2" />
           </label>
           <label className="text-sm sm:col-span-2">
             <span className="block font-semibold mb-1">Message</span>
-            <textarea required rows={6} className="w-full border border-ink px-3 py-2" />
+            <textarea required name="message" rows={6} className="w-full border border-ink px-3 py-2" />
           </label>
         </div>
-        <button className="mt-4 bg-ink px-5 py-3 text-sm font-semibold text-background hover:bg-newsroom">
+        <button type="submit" className="mt-4 bg-ink px-5 py-3 text-sm font-semibold text-background hover:bg-newsroom">
           Send to newsroom
         </button>
       </form>

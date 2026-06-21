@@ -1,9 +1,9 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { ARTICLES, articlesByCategory } from "@/data/articles";
-import { ALL_CATEGORIES, CATEGORY_LABEL, type Category } from "@/data/types";
+import { ALL_CATEGORIES, CATEGORY_LABEL, type Category, type Article } from "@/data/types";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs, SectionHead } from "@/components/editorial";
 import { SITE_NAME } from "@/lib/site";
+import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/$category")({
   beforeLoad: ({ params }) => {
@@ -11,9 +11,9 @@ export const Route = createFileRoute("/$category")({
       throw notFound();
     }
   },
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const category = params.category as Category;
-    const articles = articlesByCategory(category);
+    const articles = await apiFetch<Article[]>(`/api/articles?category=${category}`);
     return { category, articles };
   },
   head: ({ params }) => {
@@ -94,6 +94,3 @@ function CategoryPage() {
     </div>
   );
 }
-
-// Re-export ARTICLES so unused-import is silent
-void ARTICLES;

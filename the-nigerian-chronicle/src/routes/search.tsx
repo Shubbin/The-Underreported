@@ -1,18 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ARTICLES } from "@/data/articles";
 import {
   ALL_CATEGORIES,
   ALL_STATES,
   CATEGORY_LABEL,
   type Category,
   type NigerianState,
+  type Article,
 } from "@/data/types";
 import { Breadcrumbs } from "@/components/editorial";
 import { formatDateShort, SITE_NAME } from "@/lib/site";
-import { useMemo } from "react";
 import { Search, X } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 const ALL_TAGS = [
   "accountability",
@@ -43,27 +43,6 @@ const searchSchema = z.object({
 
 type SearchParams = z.infer<typeof searchSchema>;
 
-function runSearch(s: SearchParams) {
-  const hasFilters = Boolean(s.q || s.category || s.state || s.tag || s.from || s.to);
-  if (!hasFilters) return { hasFilters, results: [] as typeof ARTICLES };
-  const needle = (s.q ?? "").trim().toLowerCase();
-  const fromTs = s.from ? Date.parse(s.from) : -Infinity;
-  const toTs = s.to ? Date.parse(s.to) + 86_400_000 : Infinity;
-  const results = ARTICLES.filter((a) => {
-    if (s.category && a.category !== s.category) return false;
-    if (s.state && a.state !== s.state) return false;
-    if (s.tag && !a.tags.includes(s.tag)) return false;
-    const ts = Date.parse(a.publishedAt);
-    if (ts < fromTs || ts > toTs) return false;
-    if (needle) {
-      const hay = `${a.title} ${a.excerpt} ${a.tags.join(" ")} ${a.state ?? ""}`.toLowerCase();
-      if (!hay.includes(needle)) return false;
-    }
-    return true;
-  }).slice(0, 100);
-  return { hasFilters, results };
-}
-
 function describeFilters(s: SearchParams): string {
   const parts: string[] = [];
   if (s.q) parts.push(`“${s.q}”`);
@@ -76,20 +55,46 @@ function describeFilters(s: SearchParams): string {
 
 export const Route = createFileRoute("/search")({
   validateSearch: zodValidator(searchSchema),
-  head: (ctx: { match?: { search?: SearchParams } }) => {
-    const s: SearchParams = ctx.match?.search ?? ({ q: "" } as SearchParams);
-    const hasFilters = Boolean(s.q || s.category || s.state || s.tag || s.from || s.to);
+  loaderDeps: ({ search }) => ({
+    q: search.q,
+    category: search.category,
+    state: search.state,
+    tag: search.tag,
+    from: search.from,
+    to: search.to,
+  }),
+  loader: async ({ deps }) => {
+    const hasFilters = Boolean(deps.q || deps.category || deps.state || deps.tag || deps.from || deps.to);
+    if (!hasFilters) {
+      return { results: [] as Article[], hasFilters };
+    }
+    const params = new URLSearchParams();
+    if (deps.q) params.set("q", deps.q);
+    if (deps.category) params.set("category", deps.category);
+    if (deps.state) params.set("state", deps.state);
+    if (deps.tag) params.set("tag", deps.tag);
+    if (deps.from) params.set("from", deps.from);
+    if (deps.to) params.set("to", deps.to);
+
+    try {
+      const results = await apiFetch<Article[]>(`/api/articles?${params.toString()}`);
+      return { results, hasFilters };
+    } catch (err) {
+      return { results: [] as Article[], hasFilters };
+    }
+  },
+  head: (ctx) => {
+    const loaderData = ctx.loaderData as { results: Article[]; hasFilters: boolean } | undefined;
+    const hasFilters = loaderData?.hasFilters ?? false;
+    const s = ctx.match?.search ?? ({ q: "" } as SearchParams);
     const summary = hasFilters ? describeFilters(s) : "";
     const title = hasFilters
       ? `Search: ${summary} — ${SITE_NAME}`
       : `Search the newsroom — ${SITE_NAME}`;
     const description = hasFilters
       ? `Reports matching ${summary} in the ${SITE_NAME} archive.`
-      : `Search ${ARTICLES.length}+ investigative reports by keyword, Nigerian state, category, tag, or date.`;
+      : `Search investigative reports by keyword, Nigerian state, category, tag, or date.`;
 
-    // Bare /search is a useful landing page — index it.
-    // Filtered variants are noindex,follow and canonicalise to /search
-    // so query-string permutations don't fragment ranking.
     const canonical = "/search";
     const robots = hasFilters ? "noindex,follow" : "index,follow";
 
@@ -122,8 +127,7 @@ export const Route = createFileRoute("/search")({
       },
     ];
 
-    if (hasFilters) {
-      const { results } = runSearch(s);
+    if (hasFilters && loaderData?.results) {
       scripts.push({
         type: "application/ld+json",
         children: JSON.stringify({
@@ -133,8 +137,8 @@ export const Route = createFileRoute("/search")({
           description,
           mainEntity: {
             "@type": "ItemList",
-            numberOfItems: results.length,
-            itemListElement: results.slice(0, 20).map((a, i) => ({
+            numberOfItems: loaderData.results.length,
+            itemListElement: loaderData.results.slice(0, 20).map((a, i) => ({
               "@type": "ListItem",
               position: i + 1,
               url: `/${a.category}/${a.slug}`,
@@ -156,6 +160,7 @@ export const Route = createFileRoute("/search")({
 
 function SearchPage() {
   const { q, category, state, tag, from, to } = Route.useSearch();
+  const { results, hasFilters } = Route.useLoaderData() as { results: Article[]; hasFilters: boolean };
   const navigate = useNavigate({ from: "/search" });
 
   const update = (patch: Record<string, string | undefined>) =>
@@ -168,27 +173,6 @@ function SearchPage() {
       replace: true,
     });
 
-  const hasFilters = Boolean(q || category || state || tag || from || to);
-
-  const results = useMemo(() => {
-    if (!hasFilters) return [];
-    const needle = q.trim().toLowerCase();
-    const fromTs = from ? Date.parse(from) : -Infinity;
-    const toTs = to ? Date.parse(to) + 86_400_000 : Infinity; // inclusive end-of-day
-    return ARTICLES.filter((a) => {
-      if (category && a.category !== category) return false;
-      if (state && a.state !== state) return false;
-      if (tag && !a.tags.includes(tag)) return false;
-      const ts = Date.parse(a.publishedAt);
-      if (ts < fromTs || ts > toTs) return false;
-      if (needle) {
-        const hay = `${a.title} ${a.excerpt} ${a.tags.join(" ")} ${a.state ?? ""}`.toLowerCase();
-        if (!hay.includes(needle)) return false;
-      }
-      return true;
-    }).slice(0, 100);
-  }, [hasFilters, q, category, state, tag, from, to]);
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Search" }]} />
@@ -199,7 +183,7 @@ function SearchPage() {
           Search the newsroom
         </h1>
         <p className="mt-3 text-ink-muted">
-          Filter {ARTICLES.length} reports by keyword, state, category, tag, or date.
+          Filter reports by keyword, state, category, tag, or date.
         </p>
       </header>
 
@@ -328,7 +312,7 @@ function SearchPage() {
       <div className="mt-8" aria-live="polite" aria-busy="false">
         {!hasFilters && (
           <p className="text-ink-muted text-sm">
-            Enter a keyword or pick a filter to begin. {ARTICLES.length} reports available.
+            Enter a keyword or pick a filter to begin. Hundreds of reports available.
           </p>
         )}
         {hasFilters && (
