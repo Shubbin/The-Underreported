@@ -1,0 +1,201 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Editorial design system — Nigerian investigative newsroom.
+ * Restraint over ornament. No gradients, no glassmorphism, no neon.
+ */
+
+@theme inline {
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
+  --radius-4xl: 16px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-rule: var(--rule);
+  --color-paper: var(--paper);
+  --color-newsroom: var(--newsroom);
+  --color-alert: var(--alert);
+
+  --font-sans: "Inter", "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4", "Charter", "Georgia", "Times New Roman", serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --radius: 0.25rem;
+
+  /* Paper white background, deep ink black, editorial blue */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.005 264);
+  --paper: oklch(0.985 0.002 264);
+
+  --ink: oklch(0.18 0.005 264);
+  --ink-muted: oklch(0.42 0.008 264);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.005 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.005 264);
+
+  /* Editorial blue #2563EB */
+  --primary: oklch(0.55 0.22 262);
+  --primary-foreground: oklch(1 0 0);
+  --newsroom: oklch(0.55 0.22 262);
+
+  --secondary: oklch(0.96 0.003 264);
+  --secondary-foreground: oklch(0.18 0.005 264);
+  --muted: oklch(0.96 0.003 264);
+  --muted-foreground: oklch(0.45 0.008 264);
+  --accent: oklch(0.96 0.003 264);
+  --accent-foreground: oklch(0.18 0.005 264);
+
+  --destructive: oklch(0.52 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+  --alert: oklch(0.52 0.22 27);
+
+  --border: oklch(0.9 0.005 264);
+  --rule: oklch(0.88 0.005 264);
+  --input: oklch(0.9 0.005 264);
+  --ring: oklch(0.55 0.22 262);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+    font-weight: 700;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  /* Editorial article body */
+  .prose-article {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: var(--color-ink);
+  }
+  .prose-article p {
+    margin-bottom: 1.4em;
+  }
+  .prose-article h2 {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.2em;
+    margin-bottom: 0.6em;
+    letter-spacing: -0.02em;
+  }
+  .prose-article h3 {
+    font-family: var(--font-sans);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 1.8em;
+    margin-bottom: 0.5em;
+  }
+  .prose-article a {
+    color: var(--color-newsroom);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .prose-article blockquote {
+    border-left: 3px solid var(--color-ink);
+    padding: 0.25em 0 0.25em 1.25em;
+    margin: 1.75em 0;
+    font-style: italic;
+    color: var(--color-ink);
+  }
+  .prose-article ul, .prose-article ol {
+    margin: 1.25em 0 1.25em 1.5em;
+  }
+  .prose-article li {
+    margin-bottom: 0.5em;
+    list-style-type: disc;
+  }
+  .prose-article ol li { list-style-type: decimal; }
+
+  /* Pull quote */
+  .pull-quote {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.5rem;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    border-top: 2px solid var(--color-ink);
+    border-bottom: 2px solid var(--color-ink);
+    padding: 1.25rem 0;
+    margin: 2rem 0;
+    color: var(--color-ink);
+  }
+
+  /* Editorial kicker / eyebrow */
+  .kicker {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-newsroom);
+  }
+
+  .rule-thick {
+    border-top: 2px solid var(--color-ink);
+  }
+  .rule-hair {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  ::selection {
+    background: var(--color-newsroom);
+    color: white;
+  }
+}
