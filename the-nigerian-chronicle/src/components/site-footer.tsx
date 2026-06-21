@@ -69,7 +69,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-rule pt-6 sm:flex-row sm:items-center sm:justify-between text-xs text-ink-muted">
-          <div>© {new Date().getFullYear()} {SITE_NAME}. Independent newsroom registered in Nigeria.</div>
+          <div>© 2023–{new Date().getFullYear()} {SITE_NAME}. Independent newsroom registered in Nigeria.</div>
           <div>Reporting in the public interest.</div>
         </div>
       </div>
